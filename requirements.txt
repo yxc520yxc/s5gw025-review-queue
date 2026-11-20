@@ -1,0 +1,5 @@
+# S5-GW-025 运行依赖（版本下限；复跑时用虚拟环境固定）
+SQLAlchemy>=2,<3
+alembic>=1.13
+psycopg[binary]>=3.1
+pytest>=8

@@ -1,0 +1,78 @@
+S5-GW-025 verify @ 2026-11-20T02:00:46.329548+00:00
+python: 3.13.12
+DSN: postgresql+psycopg://postgres@127.0.0.1:5432/review2149_r2
+server_version: 160015
+PG 版本串: PostgreSQL 16.15, compiled by Visual C++ build 1944, 64-bit
+依赖: sqlalchemy 2.1.8 / alembic 1.20.1 / psycopg 3.3.9 / pytest 9.2.0
+
+=== 1) 重置目标库 public schema ===
+[ok] schema reset
+
+=== 2) 验收 1：alembic upgrade / check / downgrade / 再 upgrade / 再 check ===
+$ alembic upgrade head
+--- stderr ---
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade  -> 0001_review_queue, S5-GW-025 初始 schema：ai_drafts / ai_review_actions，显式 DDL（PostgreSQL 16）。
+[exit=0]
+
+$ alembic check
+--- stdout ---
+No new upgrade operations detected.
+--- stderr ---
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.plugins] setting up autogenerate plugin alembic.autogenerate.schemas
+INFO  [alembic.runtime.plugins] setting up autogenerate plugin alembic.autogenerate.tables
+INFO  [alembic.runtime.plugins] setting up autogenerate plugin alembic.autogenerate.types
+INFO  [alembic.runtime.plugins] setting up autogenerate plugin alembic.autogenerate.constraints
+INFO  [alembic.runtime.plugins] setting up autogenerate plugin alembic.autogenerate.defaults
+INFO  [alembic.runtime.plugins] setting up autogenerate plugin alembic.autogenerate.comments
+INFO  [alembic.ddl.postgresql] Detected sequence named 'ai_review_actions_id_seq' as owned by integer column 'ai_review_actions(id)', assuming SERIAL and omitting
+[exit=0]
+
+$ alembic downgrade -1
+--- stderr ---
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running downgrade 0001_review_queue -> , S5-GW-025 初始 schema：ai_drafts / ai_review_actions，显式 DDL（PostgreSQL 16）。
+[exit=0]
+
+$ downgrade 后对象计数
+ai_* 表=0  业务索引/约束=0  函数=0  序列=0  alembic_version 表=1（alembic 自管，不属于业务对象）
+DOWNGRADE_CLEAN: PASS
+
+$ alembic upgrade head (repeat)
+--- stderr ---
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade  -> 0001_review_queue, S5-GW-025 初始 schema：ai_drafts / ai_review_actions，显式 DDL（PostgreSQL 16）。
+[exit=0]
+
+$ alembic check (repeat)
+--- stdout ---
+No new upgrade operations detected.
+--- stderr ---
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.plugins] setting up autogenerate plugin alembic.autogenerate.schemas
+INFO  [alembic.runtime.plugins] setting up autogenerate plugin alembic.autogenerate.tables
+INFO  [alembic.runtime.plugins] setting up autogenerate plugin alembic.autogenerate.types
+INFO  [alembic.runtime.plugins] setting up autogenerate plugin alembic.autogenerate.constraints
+INFO  [alembic.runtime.plugins] setting up autogenerate plugin alembic.autogenerate.defaults
+INFO  [alembic.runtime.plugins] setting up autogenerate plugin alembic.autogenerate.comments
+INFO  [alembic.ddl.postgresql] Detected sequence named 'ai_review_actions_id_seq' as owned by integer column 'ai_review_actions(id)', assuming SERIAL and omitting
+[exit=0]
+
+=== 3) 验收 2/3/4 + 边界：pytest（真实 PG16）===
+$ pytest -q
+--- stdout ---
+..........................................                               [100%]
+42 passed in 8.57s
+[exit=0]
+
+PARSED_PASSED: 42
+
+=== 汇总 ===
+命令数=7  失败=0  pytest passed=42  downgrade_clean=PASS
+RESULT: VERIFY_PASS
